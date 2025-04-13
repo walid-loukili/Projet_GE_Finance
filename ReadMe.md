@@ -20,11 +20,3 @@ This repository provides a complete workflow for **financial statement analysis*
 ✅ **Actionable Outputs**:  
 - Cluster labels assigned to companies.  
 - Investment strategies tailored to cluster risk/return profiles.  
-
----
-
-## Installation  
-1. **Clone the repository**:  
-   ```bash
-   git clone https://github.com/your-username/financial-clustering.git
-   cd financial-clustering
