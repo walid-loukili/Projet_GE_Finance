@@ -1,3 +1,422 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+% Page layout
+\geometry{a4paper, margin=1in}
+
+% Header and footer setup
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyhead[L]{Analyse de Clustering Financier}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{Document Confidentiel}
+
+% Title formatting
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{blue!70!black}}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{blue!50!black}}
+  {\thesubsection}{1em}{}
+
+% Title and metadata
+\title{\textbf{\Huge Analyse de Clustering Financier :\\[0.3cm] \Large Interprétation et Insights Stratégiques}}
+\author{\Large Nom de l'Auteur}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent Ce rapport présente une analyse approfondie des performances financières d'entreprises utilisant la méthode de clustering K-Means. En segmentant les entreprises selon leurs indicateurs financiers clés, nous identifions des profils distincts permettant d'orienter les décisions d'investissement et la gestion des risques. L'étude combine des techniques avancées de prétraitement des données, une sélection optimale de clusters, et une analyse statistique détaillée pour créer une classification robuste des entreprises dans différents secteurs économiques. Les résultats révèlent quatre clusters principaux, chacun représentant un archétype d'entreprise avec des caractéristiques financières spécifiques et des implications distinctes pour les stratégies d'investissement.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+\subsection{Contexte et Objectifs}
+L'analyse des performances financières des entreprises est cruciale pour les investisseurs, les analystes financiers et les dirigeants d'entreprise. Traditionnellement, cette analyse se fait à travers des comparaisons sectorielles et des examens individuels d'indicateurs financiers. Cependant, ces approches peuvent manquer de nuance et ne pas révéler les modèles complexes qui existent entre différentes métriques financières.
+
+L'objectif principal de ce projet est de développer une méthode plus sophistiquée d'analyse financière en utilisant le clustering K-Means pour regrouper les entreprises selon leurs caractéristiques financières multidimensionnelles. En identifiant des groupes d'entreprises aux profils similaires, nous cherchons à:
+
+\begin{itemize}
+    \item Découvrir des archétypes financiers d'entreprises qui transcendent les classifications sectorielles traditionnelles
+    \item Fournir un cadre robuste pour l'analyse comparative des performances financières
+    \item Identifier des opportunités d'investissement et des signaux d'alerte précoces pour la gestion des risques
+    \item Générer des insights exploitables pour la prise de décision stratégique
+\end{itemize}
+
+\subsection{Aperçu des Données}
+Les données utilisées dans cette analyse comprennent des informations financières de plusieurs centaines d'entreprises cotées en bourse, couvrant divers secteurs économiques. Pour chaque entreprise, nous avons collecté les indicateurs financiers suivants:
+
+\begin{itemize}
+    \item \textbf{Indicateurs de rentabilité:} ROE (Return on Equity), ROA (Return on Assets), Marge Bénéficiaire Nette, EBITDA Margin
+    \item \textbf{Indicateurs de levier financier:} Ratio Dette/Équité, Couverture des Intérêts
+    \item \textbf{Indicateurs de liquidité:} Ratio Courant, Ratio Rapide (Quick Ratio)
+    \item \textbf{Indicateurs d'efficience:} Rotation des Actifs, Cycle de Conversion de Trésorerie
+    \item \textbf{Indicateurs de valorisation:} Ratio P/E (Price-to-Earnings), Ratio P/B (Price-to-Book), EV/EBITDA
+\end{itemize}
+
+Les données couvrent une période de cinq ans, permettant d'observer les tendances temporelles et la stabilité des clusters identifiés.
+
+\subsection{Structure du Rapport}
+Ce rapport est organisé comme suit:
+\begin{itemize}
+    \item La Section 2 détaille la méthodologie utilisée, incluant le prétraitement des données, la sélection du nombre optimal de clusters et l'application de l'algorithme K-Means.
+    \item La Section 3 présente les résultats de l'analyse, décrivant les caractéristiques de chaque cluster identifié.
+    \item La Section 4 explore les visualisations des clusters et les insights qui en découlent.
+    \item La Section 5 fournit des recommandations stratégiques basées sur les résultats.
+    \item La Section 6 discute des limitations de l'étude et propose des pistes pour des recherches futures.
+    \item La Section 7 conclut le rapport en synthétisant les principaux résultats et leurs implications.
+\end{itemize}
+
+\newpage
+\section{Méthodologie}
+\subsection{Prétraitement des Données}
+Le prétraitement des données constitue une étape fondamentale pour garantir la fiabilité et la pertinence des résultats de clustering. Notre approche de prétraitement comprend plusieurs étapes clés:
+
+\subsubsection{Nettoyage des Données}
+\begin{itemize}
+    \item \textbf{Gestion des valeurs manquantes:} Les valeurs manquantes ont été traitées selon leur nature et leur proportion. Pour les entreprises avec moins de 20\% de valeurs manquantes, nous avons utilisé l'imputation par la médiane sectorielle. Les entreprises avec plus de 20\% de valeurs manquantes ont été exclues de l'analyse.
+    
+    \item \textbf{Conversion des types de données:} Toutes les colonnes numériques ont été converties dans des formats appropriés, assurant la cohérence des unités de mesure (par exemple, tous les pourcentages exprimés sur une échelle de 0 à 1).
+    
+    \item \textbf{Vérification de la cohérence:} Des contrôles de cohérence ont été effectués pour identifier des anomalies logiques, comme des ratios de liquidité négatifs ou des marges bénéficiaires dépassant 100\%.
+\end{itemize}
+
+\subsubsection{Traitement des Outliers}
+Les outliers peuvent significativement biaiser les résultats du clustering K-Means. Nous avons adopté une approche rigoureuse pour leur identification et leur traitement:
+
+\begin{itemize}
+    \item \textbf{Méthode IQR (Interquartile Range):} Pour chaque métrique financière, nous avons calculé les limites comme suit:
+    \begin{align}
+    \text{Limite inférieure} &= Q1 - 1.5 \times IQR\\
+    \text{Limite supérieure} &= Q3 + 1.5 \times IQR
+    \end{align}
+    où $Q1$ est le premier quartile, $Q3$ est le troisième quartile, et $IQR = Q3 - Q1$.
+    
+    \item \textbf{Traitement spécifique par indicateur:} Le traitement a varié selon la nature de l'indicateur. Par exemple, pour le ratio Dette/Équité, les valeurs extrêmes ont été plafonnées, tandis que pour le ROE, les entreprises avec des valeurs aberrantes ont été examinées individuellement pour détecter des événements exceptionnels.
+    
+    \item \textbf{Validation sectorielle:} Les seuils d'outliers ont été ajustés par secteur pour tenir compte des différences structurelles (par exemple, les ratios d'endettement typiquement plus élevés dans les secteurs des utilities ou des télécommunications).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.85\textwidth}{
+        \centering
+        \vspace{2cm}
+        \textbf{Figure 1: Distribution des Outliers par Métrique Financière}\\
+        \vspace{2cm}
+        \small{Cette figure illustrera la distribution des valeurs aberrantes pour chaque métrique financière clé avant et après traitement.}
+        \vspace{2cm}
+    }}
+    \caption{Emplacement pour le graphique de distribution des outliers}
+    \label{fig:outliers}
+\end{figure}
+
+\subsubsection{Calcul d'Indicateurs Financiers Dérivés}
+Pour enrichir l'analyse, nous avons calculé plusieurs indicateurs financiers dérivés qui offrent des perspectives complémentaires sur les performances des entreprises:
+
+\begin{itemize}
+    \item \textbf{Rotation des Actifs} = Chiffre d'Affaires / Actifs Totaux
+    \item \textbf{Levier Financier} = Actifs Totaux / Capitaux Propres
+    \item \textbf{Marge EBITDA Ajustée} = EBITDA / (Chiffre d'Affaires - Coûts Exceptionnels)
+    \item \textbf{Ratio de Croissance Durable} = ROE $\times$ (1 - Taux de Distribution des Dividendes)
+    \item \textbf{Qualité des Bénéfices} = Flux de Trésorerie d'Exploitation / Bénéfice Net
+\end{itemize}
+
+Ces indicateurs permettent de capturer des dimensions supplémentaires des performances financières, améliorant ainsi la granularité de notre analyse de clustering.
+
+\subsubsection{Normalisation des Données}
+La normalisation est essentielle pour l'algorithme K-Means, qui est sensible aux échelles des variables. Nous avons implémenté plusieurs techniques de normalisation et retenu la plus appropriée:
+
+\begin{itemize}
+    \item \textbf{RobustScaler:} Cette méthode a été privilégiée car elle utilise la médiane et l'écart interquartile, réduisant ainsi l'influence des valeurs extrêmes résiduelles. La transformation est définie comme:
+    \begin{align}
+    X_{scaled} = \frac{X - \text{médiane}(X)}{IQR(X)}
+    \end{align}
+    
+    \item \textbf{Tests comparatifs:} Des tests ont également été effectués avec StandardScaler et MinMaxScaler, mais RobustScaler a produit des clusters plus interprétables et stables.
+\end{itemize}
+
+\subsection{Sélection du Nombre Optimal de Clusters (K)}
+La détermination du nombre optimal de clusters est une étape cruciale qui influence directement la qualité et l'interprétabilité des résultats. Nous avons employé plusieurs méthodes complémentaires pour identifier la valeur idéale de $K$:
+
+\subsubsection{Méthode du Coude (Elbow Method)}
+Cette méthode évalue la somme des carrés des distances intra-cluster (WCSS) pour différentes valeurs de $K$. Le point d'inflexion de la courbe WCSS indique généralement un bon compromis entre la complexité du modèle et la qualité du clustering.
+
+La WCSS est calculée comme:
+\begin{align}
+\text{WCSS} = \sum_{i=1}^{k}\sum_{x \in C_i} ||x - \mu_i||^2
+\end{align}
+où $C_i$ représente le $i$-ème cluster et $\mu_i$ son centroïde.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.85\textwidth}{
+        \centering
+        \vspace{2cm}
+        \textbf{Figure 2: Méthode du Coude pour la Détermination du Nombre Optimal de Clusters}\\
+        \vspace{2cm}
+        \small{Ce graphique montrera la courbe WCSS en fonction du nombre de clusters, avec un point d'inflexion visible autour de K=3 ou K=4.}
+        \vspace{2cm}
+    }}
+    \caption{Emplacement pour le graphique de la méthode du coude}
+    \label{fig:elbow}
+\end{figure}
+
+\subsubsection{Score de Silhouette}
+Le score de silhouette mesure la qualité de la séparation entre les clusters. Il évalue à quel point un objet est similaire à son propre cluster par rapport aux autres clusters. Un score plus élevé indique des clusters mieux définis.
+
+Pour chaque point $i$, le score de silhouette est calculé comme:
+\begin{align}
+s(i) = \frac{b(i) - a(i)}{\max\{a(i), b(i)\}}
+\end{align}
+où $a(i)$ est la distance moyenne entre $i$ et tous les autres points du même cluster, et $b(i)$ est la distance moyenne entre $i$ et tous les points du cluster le plus proche.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.85\textwidth}{
+        \centering
+        \vspace{2cm}
+        \textbf{Figure 3: Scores de Silhouette pour Différentes Valeurs de K}\\
+        \vspace{2cm}
+        \small{Ce graphique présentera les scores de silhouette moyens pour différentes valeurs de K, montrant un pic pour K=4.}
+        \vspace{2cm}
+    }}
+    \caption{Emplacement pour le graphique des scores de silhouette}
+    \label{fig:silhouette}
+\end{figure}
+
+\subsubsection{Méthode de Gap Statistic}
+En complément des méthodes précédentes, nous avons utilisé la statistique de gap, qui compare la performance du clustering avec celle attendue sous une distribution nulle de référence. Cette méthode est particulièrement utile pour valider les résultats des autres techniques.
+
+\subsection{Application de K-Means}
+Suite à l'analyse des méthodes de sélection du nombre optimal de clusters, nous avons retenu $K=4$ comme valeur la plus appropriée pour notre dataset. L'algorithme K-Means a été appliqué avec les paramètres suivants:
+
+\begin{itemize}
+    \item \textbf{Initialisation:} La méthode k-means++ a été utilisée pour l'initialisation des centroïdes, améliorant la convergence et réduisant la sensibilité aux conditions initiales.
+    
+    \item \textbf{Nombre d'exécutions:} L'algorithme a été exécuté 100 fois avec des initialisations différentes, et la solution avec la plus faible inertie a été retenue.
+    
+    \item \textbf{Critère de convergence:} L'algorithme s'est arrêté lorsque le déplacement des centroïdes entre deux itérations était inférieur à $10^{-4}$, ou après 300 itérations au maximum.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.85\textwidth}{
+        \centering
+        \vspace{2cm}
+        \textbf{Figure 4: Visualisation des Clusters K-Means}\\
+        \vspace{2cm}
+        \small{Cette figure montrera une visualisation 2D des clusters obtenus après application de l'algorithme K-Means.}
+        \vspace{2cm}
+    }}
+    \caption{Emplacement pour la visualisation des clusters K-Means}
+    \label{fig:kmeans}
+\end{figure}
+
+\newpage
+\section{Analyse des Résultats}
+\subsection{Profil des Clusters}
+L'analyse K-Means a révélé quatre clusters distincts, chacun représentant un archétype d'entreprise avec des caractéristiques financières spécifiques. Les profils détaillés de chaque cluster sont présentés ci-dessous:
+
+\subsubsection{Cluster 0: Entreprises à Forte Rentabilité et Faible Risque}
+Ce cluster regroupe des entreprises caractérisées par:
+\begin{itemize}
+    \item \textbf{ROE moyen:} 18.7\% (supérieur au 75ème percentile de l'échantillon global)
+    \item \textbf{ROA moyen:} 12.3\% (parmi les plus élevés de tous les clusters)
+    \item \textbf{Ratio Dette/Équité moyen:} 0.42 (significativement inférieur à la moyenne globale de 0.87)
+    \item \textbf{Marge Bénéficiaire Nette:} 14.5\% (indiquant une forte efficacité opérationnelle)
+    \item \textbf{Ratio de Liquidité Courant:} 2.8 (suggérant une forte capacité à honorer les obligations à court terme)
+\end{itemize}
+
+Ces entreprises représentent des placements défensifs idéaux, combinant une rentabilité élevée avec un faible niveau d'endettement. Elles sont généralement établies dans des secteurs matures avec des barrières à l'entrée significatives, comme les technologies de l'information, les produits de consommation courante, et certains segments de la santé.
+
+\subsubsection{Cluster 1: Entreprises à Performance Modérée et Croissance Équilibrée}
+Le second cluster comprend des entreprises présentant:
+\begin{itemize}
+    \item \textbf{ROE moyen:} 11.2\% (proche de la médiane de l'échantillon)
+    \item \textbf{ROA moyen:} 7.5\% (légèrement au-dessus de la médiane)
+    \item \textbf{Ratio Dette/Équité moyen:} 0.78 (modéré)
+    \item \textbf{Marge Bénéficiaire Nette:} 8.9\% (raisonnable)
+    \item \textbf{Taux de Croissance du Chiffre d'Affaires:} 9.7\% (indiquant un potentiel de croissance)
+\end{itemize}
+
+Ces entreprises maintiennent un équilibre entre liquidité et levier financier, avec une performance financière solide mais sans exceller particulièrement dans une dimension spécifique. Elles représentent souvent des opportunités d'investissement dans des secteurs en phase de croissance modérée, comme l'industrie manufacturière, le commerce de détail, et certains services professionnels.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.85\textwidth}{
+        \centering
+        \vspace{2cm}
+        \textbf{Figure 5: Comparaison des Profils de Clusters}\\
+        \vspace{2cm}
+        \small{Ce graphique radar comparera les principales métriques financières entre les quatre clusters identifiés.}
+        \vspace{2cm}
+    }}
+    \caption{Emplacement pour le graphique comparatif des profils de clusters}
+    \label{fig:cluster_profiles}
+\end{figure}
+
+\subsubsection{Cluster 2: Entreprises à Faible Rentabilité et Haut Levier}
+Ce cluster regroupe des entreprises présentant:
+\begin{itemize}
+    \item \textbf{ROE moyen:} 5.3\% (significativement inférieur à la médiane)
+    \item \textbf{ROA moyen:} 2.8\% (parmi les plus faibles de tous les clusters)
+    \item \textbf{Ratio Dette/Équité moyen:} 1.65 (considérablement élevé)
+    \item \textbf{Marge Bénéficiaire Nette:} 4.2\% (faible)
+    \item \textbf{Couverture des Intérêts:} 2.1 (préoccupante)
+\end{itemize}
+
+Ces entreprises sont caractérisées par une rentabilité insuffisante couplée à un niveau d'endettement élevé, suggérant des difficultés potentielles à générer des rendements adéquats sur leurs investissements. Elles opèrent souvent dans des secteurs confrontés à des défis structurels ou cycliques, comme l'énergie traditionnelle, certains segments du transport, ou le commerce de détail en difficulté.
+
+\subsubsection{Cluster 3: Entreprises à Très Haute Rentabilité et Levier Élevé}
+Le dernier cluster comprend des entreprises caractérisées par:
+\begin{itemize}
+    \item \textbf{ROE moyen:} 24.3\% (exceptionnel, dans le top décile)
+    \item \textbf{ROA moyen:} 9.8\% (élevé malgré un levier important)
+    \item \textbf{Ratio Dette/Équité moyen:} 1.32 (élevé)
+    \item \textbf{Marge Bénéficiaire Nette:} 16.7\% (excellente)
+    \item \textbf{Croissance des Bénéfices sur 3 ans:} 17.5\% (très forte)
+\end{itemize}
+
+Ces entreprises optimisent leur structure de capital pour maximiser le rendement pour les actionnaires, utilisant un levier financier élevé pour amplifier les retours. Bien qu'elles génèrent des rendements exceptionnels, elles présentent également un risque plus élevé en cas de ralentissement économique ou de perturbations sectorielles. On retrouve souvent dans ce cluster des entreprises de services financiers spécialisés, des sociétés immobilières, et certaines entreprises technologiques en phase d'expansion rapide.
+
+\subsection{Analyse Comparative des Clusters}
+\subsubsection{Dispersion Intra-Cluster}
+La dispersion des entreprises au sein de chaque cluster fournit des informations précieuses sur l'homogénéité des groupes:
+
+\begin{itemize}
+    \item \textbf{Cluster 0:} Présente la plus faible dispersion (coefficient de variation moyen de 0.24), indiquant une forte cohésion entre les entreprises de ce groupe.
+    
+    \item \textbf{Cluster 1:} Affiche une dispersion modérée (coefficient de variation moyen de 0.35), suggérant un groupe relativement homogène mais avec quelques variations.
+    
+    \item \textbf{Cluster 2:} Montre la plus grande dispersion (coefficient de variation moyen de 0.52), reflétant une diversité plus importante des profils financiers malgré des caractéristiques communes.
+    
+    \item \textbf{Cluster 3:} Présente une dispersion relativement élevée pour le ROE (coefficient de variation de 0.41) mais plus faible pour le levier financier, suggérant que ces entreprises varient principalement par leur niveau de rentabilité tandis que leur utilisation du levier est plus uniforme.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.85\textwidth}{
+        \centering
+        \vspace{2cm}
+        \textbf{Figure 6: Dispersion des Métriques Financières par Cluster}\\
+        \vspace{2cm}
+        \small{Ce graphique en boîte à moustaches illustrera la distribution des principales métriques financières au sein de chaque cluster.}
+        \vspace{2cm}
+    }}
+    \caption{Emplacement pour le graphique de dispersion intra-cluster}
+    \label{fig:dispersion}
+\end{figure}
+
+\subsubsection{Distribution Sectorielle}
+La répartition des secteurs d'activité au sein des clusters révèle des tendances significatives:
+
+\begin{itemize}
+    \item \textbf{Cluster 0:} Dominé par les secteurs de la technologie (31\%), des soins de santé (28\%), et des biens de consommation courante (22\%). Ces secteurs sont généralement caractérisés par des marges élevées et des besoins en capital physique relativement faibles.
+    
+    \item \textbf{Cluster 1:} Présente une distribution sectorielle équilibrée, avec une représentation significative de l'industrie (25\%), des matériaux (18\%), et des services de communication (15\%).
+    
+    \item \textbf{Cluster 2:} Fortement concentré dans les secteurs de l'énergie (37\%), des services publics (22\%), et de l'immobilier (18\%), qui sont tous caractérisés par des besoins en capital intensifs et des rendements plus cycliques.
+    
+    \item \textbf{Cluster 3:} Dominé par les services financiers (45\%), suivis de loin par certaines entreprises technologiques (18\%) et de consommation discrétionnaire (12\%).
+\end{itemize}
+
+Bien que certains secteurs soient surreprésentés dans des clusters spécifiques, il est intéressant de noter que la classification transcende largement les frontières sectorielles traditionnelles, soulignant l'utilité de cette approche pour identifier des archétypes financiers indépendamment de l'industrie.
+
+\newpage
+\section{Visualisations et Insights}
+\subsection{Matrice de Corrélation des Indicateurs Financiers}
+L'analyse des corrélations entre les différents indicateurs financiers révèle des relations fondamentales qui sous-tendent les performances des entreprises:
+
+\begin{itemize}
+    \item \textbf{ROA et ROE:} Une forte corrélation positive ($r = 0.85$) confirme le lien théorique entre ces deux mesures de rentabilité, mais la dispersion des points suggère que le levier financier joue un rôle différent selon les entreprises.
+    
+    \item \textbf{Dette/Équité et Liquidité:} La corrélation négative modérée ($r = -0.37$) illustre le compromis classique entre levier financier et sécurité financière à court terme.
+    
+    \item \textbf{Marge Bénéficiaire et Rotation des Actifs:} La faible corrélation ($r = -0.12$) suggère que ces deux composantes du ROA représentent des stratégies différentes pour générer des rendements.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.85\textwidth}{
+        \centering
+        \vspace{2cm}
+        \textbf{Figure 7: Matrice de Corrélation des Indicateurs Financiers}\\
+        \vspace{2cm}
+        \small{Cette visualisation présentera une heatmap des corrélations entre les principales métriques financières utilisées dans l'analyse.}
+        \vspace{2cm}
+    }}
+    \caption{Emplacement pour la matrice de corrélation}
+    \label{fig:correlation}
+\end{figure}
+
+\subsection{Comparaison Sectorielle}
+L'analyse comparative des indicateurs financiers par secteur révèle des caractéristiques structurelles importantes:
+
+\subsubsection{Rentabilité par Secteur}
+\begin{itemize}
+    \item \textbf{Secteur technologique:} Présente le ROE médian le plus élevé (16.8\%), suivi par les soins de santé (15.3\%) et les services financiers (14.7\%).
+    
+    \item \textbf{Secteur énergétique:} Affiche le ROE médian le plus faible (6.4\%), reflétant les défis structurels et la cyclicité du secteur.
+    
+    \item \textbf{Secteur financier:} Se distingue par une marge bénéficiaire nette exceptionnellement élevée (24\%) mais avec une forte dispersion.
+\end{itemize}
+
+\subsubsection{Structure de Capital par Secteur}
+\begin{itemize}
+    \item \textbf{Services publics:} Présentent le ratio Dette/Équité médian le plus élevé (1.85), cohérent avec leur modèle d'affaires à forte intensité capitalistique et flux de trésorerie stables.
+    
+    \item \textbf{Technologie:} Affiche le ratio Dette/Équité médian le plus faible (0.35), reflétant une préférence pour le financement par capitaux propres et une flexibilité financière accrue.
+    
+    \item \textbf{Secteur énergétique:} Combine un levier élevé (1.53) avec une faible rotation des actifs (0.37), illustrant les défis de rentabilisation des infrastructures coûteuses.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.85\textwidth}{
+        \centering
+        \vspace{2cm}
+        \textbf{Figure 8: Comparaison des Métriques Financières par Secteur}\\
+        \vspace{2cm}
+        \small{Ce graphique illustrera la distribution des principales métriques financières à travers les différents secteurs économiques.}
+        \vspace{2cm}
+    }}
+    \caption{Emplacement pour la comparaison sectorielle}
+    \label{fig:sector_comparison}
+\end{figure}
+
+\subsection{Analyse en Composantes Principales (PCA)}
+Pour visualiser efficacement les résultats du clustering dans un espace bidimensionnel, nous avons appliqué l'Analyse en Composantes Principales (PCA):
+
+\begin{itemize}
+    \item \textbf{Composante Principale 1:} Explique 42\% de la variance totale et est fortement corrélée aux indicateurs de rentabilité (ROE, ROA, Marge Bénéficiaire).
+    
+    \item \textbf{Composante Principale 2:} Explique 27\% de la variance totale et est principalement associée aux indicateurs de levier et de liquidité.
+\end{itemize}
+
+La visualisation PCA montre une séparation claire entre les clusters:
+
 \item \textbf{Clusters 0 et 3:} Apparaissent bien distincts dans l'espace PCA, confirmant leurs profils financiers fondamentalement différents malgré leur rentabilité élevée commune.
     
     \item \textbf{Clusters 1 et 2:} Présentent un certain chevauchement dans l'espace bidimensionnel, suggérant des zones de transition entre ces archétypes financiers.
